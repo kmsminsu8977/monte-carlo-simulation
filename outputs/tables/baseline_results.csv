@@ -1,0 +1,4 @@
+scenario_id,n_paths,mean_terminal_value,p05_terminal_value,p50_terminal_value,p95_terminal_value,loss_probability
+BASELINE,4000,106.390838,78.06251,104.898703,140.563266,0.3985
+LOW_VOL,4000,104.698337,88.736088,104.148798,123.226078,0.3515
+STRESS_VOL,4000,102.437232,57.734685,97.335002,163.729331,0.531

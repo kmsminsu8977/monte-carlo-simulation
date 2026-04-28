@@ -1,0 +1,4 @@
+scenario_id,base_value,annual_mu,annual_sigma,horizon_days,n_paths,seed
+BASELINE,100.0,0.065,0.18,252,4000,701
+LOW_VOL,100.0,0.045,0.1,252,4000,702
+STRESS_VOL,100.0,0.025,0.32,252,4000,703
