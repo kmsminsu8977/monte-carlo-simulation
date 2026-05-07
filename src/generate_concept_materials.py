@@ -1,16 +1,16 @@
-"""몬테카를로 시뮬레이션 복습 자료 생성기.
+"""몬테카를로 시뮬레이션 민감도 분석 자료 생성기.
 
-이 모듈은 `data/sample/review_scenarios.csv`에 정리한 합성 가정을 읽고,
-복습에 바로 사용할 수 있는 표 자료를 `outputs/tables/`에 저장한다.
+이 모듈은 `data/sample/concept_scenarios.csv`에 정리한 합성 가정을 읽고,
+분석에 바로 사용할 수 있는 표 자료를 `outputs/tables/`에 저장한다.
 
 생성 산출물은 네 가지다.
 
-1. `review_distribution_summary.csv`: 시나리오별 terminal value 분포 요약
-2. `review_convergence_check.csv`: 경로 수가 늘어날 때 평균과 손실확률이 안정되는지 보는 표
-3. `review_flashcards.csv`: 핵심 개념을 질문/답 형식으로 압축한 암기 카드
-4. `review_practice_questions.csv`: 계산 결과와 해석을 연결하는 자가 점검 문제
+1. `concept_distribution_summary.csv`: 시나리오별 terminal value 분포 요약
+2. `concept_convergence_check.csv`: 경로 수가 늘어날 때 평균과 손실확률이 안정되는지 보는 표
+3. `concept_question_cards.csv`: 핵심 개념을 질문/답 형식으로 정리한 카드
+4. `concept_validation_questions.csv`: 계산 결과와 해석을 연결하는 검증 질문
 
-외부 패키지 없이 표준 라이브러리만 사용한다. 복습 자료가 강의 노트의 숫자를
+외부 패키지 없이 표준 라이브러리만 사용한다. 민감도 분석 자료가 강의 노트의 숫자를
 그대로 복사한 것이 아니라, 이 저장소의 연구 질문에 맞춘 합성 예제로 재현되도록
 입력, 난수 seed, 경로 수를 모두 CSV와 코드에 명시한다.
 """
@@ -25,13 +25,13 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-INPUT_PATH = ROOT / "data" / "sample" / "review_scenarios.csv"
+INPUT_PATH = ROOT / "data" / "sample" / "concept_scenarios.csv"
 OUTPUT_DIR = ROOT / "outputs" / "tables"
 
 
 @dataclass(frozen=True)
-class ReviewScenario:
-    """복습용 몬테카를로 입력 가정.
+class ConceptScenario:
+    """민감도 분석용 몬테카를로 입력 가정.
 
     `base_value`는 현재 포트폴리오 가치를 뜻하며, 결과 해석의 기준 단위도
     동일하다. `annual_mu`와 `annual_sigma`는 연율 입력값이므로, 코드에서는
@@ -45,11 +45,11 @@ class ReviewScenario:
     horizon_days: int
     n_paths: int
     seed: int
-    review_focus: str
+    analysis_focus: str
 
 
-def _read_scenarios(path: Path = INPUT_PATH) -> list[ReviewScenario]:
-    """복습 시나리오 CSV를 구조화된 입력 객체 목록으로 변환한다.
+def _read_scenarios(path: Path = INPUT_PATH) -> list[ConceptScenario]:
+    """민감도 시나리오 CSV를 구조화된 입력 객체 목록으로 변환한다.
 
     CSV는 사람이 수정하기 쉬운 형식이지만 모든 값이 문자열로 읽힌다. 계산 전에
     수치형 컬럼을 명시적으로 변환해, 단위가 섞이거나 빈 값이 들어왔을 때 어느
@@ -59,7 +59,7 @@ def _read_scenarios(path: Path = INPUT_PATH) -> list[ReviewScenario]:
     with path.open(newline="", encoding="utf-8") as fp:
         rows = csv.DictReader(fp)
         return [
-            ReviewScenario(
+            ConceptScenario(
                 scenario_id=row["scenario_id"],
                 base_value=float(row["base_value"]),
                 annual_mu=float(row["annual_mu"]),
@@ -67,7 +67,7 @@ def _read_scenarios(path: Path = INPUT_PATH) -> list[ReviewScenario]:
                 horizon_days=int(row["horizon_days"]),
                 n_paths=int(row["n_paths"]),
                 seed=int(row["seed"]),
-                review_focus=row["review_focus"],
+                analysis_focus=row["analysis_focus"],
             )
             for row in rows
         ]
@@ -83,7 +83,7 @@ def _sample_sd(values: list[float]) -> float:
     """표본 표준편차를 계산한다.
 
     경로 평균의 표준오차를 만들 때 표본분산의 관례인 n-1 분모를 사용한다.
-    복습 관점에서는 "경로 수를 늘리면 평균 추정의 불확실성이 줄어든다"는 점을
+    수렴성 진단 관점에서는 "경로 수를 늘리면 평균 추정의 불확실성이 줄어든다"는 점을
     확인하는 용도이므로, 표준오차와 신뢰구간 폭을 함께 기록한다.
     """
 
@@ -121,7 +121,7 @@ def _round(value: float, digits: int = 6) -> float:
     return round(value, digits)
 
 
-def _terminal_values(scenario: ReviewScenario, n_paths: int | None = None) -> list[float]:
+def _terminal_values(scenario: ConceptScenario, n_paths: int | None = None) -> list[float]:
     """GBM 해석해를 이용해 만기 포트폴리오 가치 표본을 생성한다.
 
     가정하는 모형은
@@ -144,7 +144,7 @@ def _terminal_values(scenario: ReviewScenario, n_paths: int | None = None) -> li
     ]
 
 
-def _distribution_note(scenario: ReviewScenario, loss_probability: float, p05: float, p95: float) -> str:
+def _distribution_note(scenario: ConceptScenario, loss_probability: float, p05: float, p95: float) -> str:
     """분포 요약표에 붙일 짧은 해석 메모를 만든다."""
 
     spread = p95 - p05
@@ -155,8 +155,8 @@ def _distribution_note(scenario: ReviewScenario, loss_probability: float, p05: f
     return f"기준 구간: 평균과 하방 분위수의 차이를 손실확률과 함께 해석"
 
 
-def build_distribution_summary(scenarios: list[ReviewScenario]) -> list[dict[str, object]]:
-    """시나리오별 terminal value 분포를 복습용 지표로 요약한다."""
+def build_distribution_summary(scenarios: list[ConceptScenario]) -> list[dict[str, object]]:
+    """시나리오별 terminal value 분포를 민감도 분석용 지표로 요약한다."""
 
     output: list[dict[str, object]] = []
     for scenario in scenarios:
@@ -170,7 +170,7 @@ def build_distribution_summary(scenarios: list[ReviewScenario]) -> list[dict[str
         output.append(
             {
                 "scenario_id": scenario.scenario_id,
-                "review_focus": scenario.review_focus,
+                "analysis_focus": scenario.analysis_focus,
                 "base_value": _round(scenario.base_value),
                 "annual_mu": _round(scenario.annual_mu),
                 "annual_sigma": _round(scenario.annual_sigma),
@@ -188,18 +188,18 @@ def build_distribution_summary(scenarios: list[ReviewScenario]) -> list[dict[str
                 "upside_20pct_probability": _round(
                     sum(value >= scenario.base_value * 1.20 for value in values) / scenario.n_paths
                 ),
-                "review_note": _distribution_note(scenario, loss_probability, p05, p95),
+                "analysis_note": _distribution_note(scenario, loss_probability, p05, p95),
             }
         )
     return output
 
 
-def build_convergence_check(scenarios: list[ReviewScenario]) -> list[dict[str, object]]:
+def build_convergence_check(scenarios: list[ConceptScenario]) -> list[dict[str, object]]:
     """경로 수가 늘어날 때 추정치가 안정되는지 확인하는 표를 만든다.
 
     몬테카를로는 난수 표본으로 기대값을 근사하므로, 경로 수가 너무 작으면 결과가
     seed에 과하게 의존한다. 이 표는 동일 seed에서 경로 수를 늘리며 평균, 하방
-    분위수, 손실확률이 어느 정도 흔들리는지 복습하게 해준다.
+    분위수, 손실확률이 어느 정도 흔들리는지 확인하게 해준다.
     """
 
     output: list[dict[str, object]] = []
@@ -218,7 +218,7 @@ def build_convergence_check(scenarios: list[ReviewScenario]) -> list[dict[str, o
             output.append(
                 {
                     "scenario_id": scenario.scenario_id,
-                    "review_focus": scenario.review_focus,
+                    "analysis_focus": scenario.analysis_focus,
                     "n_paths": n_paths,
                     "seed": scenario.seed,
                     "mean_terminal_value": _round(avg),
@@ -232,8 +232,8 @@ def build_convergence_check(scenarios: list[ReviewScenario]) -> list[dict[str, o
     return output
 
 
-def build_flashcards() -> list[dict[str, object]]:
-    """개념 복습용 질문/답 카드를 만든다."""
+def build_question_cards() -> list[dict[str, object]]:
+    """민감도 분석용 질문/답 카드를 만든다."""
 
     cards = [
         (
@@ -319,8 +319,8 @@ def build_flashcards() -> list[dict[str, object]]:
     ]
 
 
-def build_practice_questions() -> list[dict[str, object]]:
-    """복습자가 결과표를 읽고 직접 답을 점검할 수 있는 문제를 만든다."""
+def build_validation_questions() -> list[dict[str, object]]:
+    """결과표의 해석 논리를 확인하는 검증 질문을 만든다."""
 
     questions = [
         (
@@ -340,7 +340,7 @@ def build_practice_questions() -> list[dict[str, object]]:
         (
             "Q03",
             "수렴성",
-            "`review_convergence_check.csv`에서 경로 수가 커질 때 `standard_error_mean`이 줄어드는지 확인하라.",
+            "`concept_convergence_check.csv`에서 경로 수가 커질 때 `standard_error_mean`이 줄어드는지 확인하라.",
             "표준오차는 표본 표준편차를 경로 수의 제곱근으로 나눈 값이므로, 같은 시나리오 안에서는 대체로 경로 수가 늘수록 작아져야 한다.",
             "난수 시뮬레이션의 표본오차를 숫자로 점검한다.",
         ),
@@ -361,7 +361,7 @@ def build_practice_questions() -> list[dict[str, object]]:
         (
             "Q06",
             "검증",
-            "복습용 표를 다시 생성한 뒤 baseline 결과와 숫자가 다를 때 먼저 확인할 항목은?",
+            "민감도 분석용 표를 다시 생성한 뒤 baseline 결과와 숫자가 다를 때 먼저 확인할 항목은?",
             "입력 파일, seed, 경로 수, horizon_days, 연율 단위, 코드 변경 여부를 먼저 확인한다. 난수 생성 방식이 다르면 같은 가정이어도 숫자가 달라질 수 있다.",
             "재현성 문제를 입력, 난수, 구현 순서로 좁힌다.",
         ),
@@ -402,21 +402,21 @@ def _write_csv(rows: list[dict[str, object]], path: Path) -> None:
             if key not in fieldnames:
                 fieldnames.append(key)
     with path.open("w", newline="", encoding="utf-8") as fp:
-        # Git diff와 문서 리뷰에서 불필요한 CRLF 잡음이 생기지 않도록 산출물 줄끝을 LF로 고정한다.
+        # Git diff와 문서 검토에서 불필요한 CRLF 잡음이 생기지 않도록 산출물 줄끝을 LF로 고정한다.
         writer = csv.DictWriter(fp, fieldnames=fieldnames, lineterminator="\n")
         writer.writeheader()
         writer.writerows(rows)
 
 
-def generate_review_materials() -> dict[str, int]:
-    """복습 자료 CSV를 모두 생성하고 파일별 행 수를 반환한다."""
+def generate_concept_materials() -> dict[str, int]:
+    """민감도 분석 자료 CSV를 모두 생성하고 파일별 행 수를 반환한다."""
 
     scenarios = _read_scenarios()
     outputs = {
-        "review_distribution_summary.csv": build_distribution_summary(scenarios),
-        "review_convergence_check.csv": build_convergence_check(scenarios),
-        "review_flashcards.csv": build_flashcards(),
-        "review_practice_questions.csv": build_practice_questions(),
+        "concept_distribution_summary.csv": build_distribution_summary(scenarios),
+        "concept_convergence_check.csv": build_convergence_check(scenarios),
+        "concept_question_cards.csv": build_question_cards(),
+        "concept_validation_questions.csv": build_validation_questions(),
     }
     for filename, rows in outputs.items():
         _write_csv(rows, OUTPUT_DIR / filename)
@@ -424,9 +424,9 @@ def generate_review_materials() -> dict[str, int]:
 
 
 def main() -> None:
-    """명령행 실행 시 복습 자료를 모두 재생성한다."""
+    """명령행 실행 시 민감도 분석 자료를 모두 재생성한다."""
 
-    counts = generate_review_materials()
+    counts = generate_concept_materials()
     for filename, row_count in counts.items():
         print(f"wrote {row_count} rows to {OUTPUT_DIR / filename}")
 

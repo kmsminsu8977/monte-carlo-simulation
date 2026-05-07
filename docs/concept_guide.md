@@ -1,14 +1,14 @@
-# 몬테카를로 시뮬레이션 복습 가이드
+# 몬테카를로 시뮬레이션 분석 자료 가이드
 
-## 1. 복습 목적
+## 1. 자료 목적
 
-이 문서는 `SOURCE.md`의 참고 초점인 난수 시뮬레이션 입력 가정, 경로 수, seed, 분위수 해석을 현재 저장소의 핵심 질문에 맞게 재구성한 복습 자료입니다.
+이 문서는 `SOURCE.md`의 참고 초점인 난수 시뮬레이션 입력 가정, 경로 수, seed, 분위수 해석을 현재 저장소의 핵심 질문에 맞게 재구성한 민감도 분석 자료입니다.
 
 핵심 질문은 다음과 같습니다.
 
 > 평균과 변동성 가정이 바뀔 때 1년 뒤 포트폴리오 가치 분포는 어떻게 달라지는가?
 
-복습의 목표는 단순히 코드를 실행하는 것이 아니라, 입력 가정이 분포 지표에 어떤 방향으로 반영되는지 설명할 수 있게 되는 것입니다.
+자료의 목표는 단순히 코드를 실행하는 것이 아니라, 입력 가정이 분포 지표에 어떤 방향으로 반영되는지 설명할 수 있게 되는 것입니다.
 
 ## 2. 핵심 수식
 
@@ -36,31 +36,31 @@ baseline 결과는 기존 명령으로 재생성합니다.
 python -m src.run_baseline
 ```
 
-복습 자료는 별도 명령으로 재생성합니다.
+민감도 분석 자료는 별도 명령으로 재생성합니다.
 
 ```bash
-python -m src.generate_review_materials
+python -m src.generate_concept_materials
 ```
 
-복습 자료 입력은 `data/sample/review_scenarios.csv`이고, 출력은 `outputs/tables/`에 저장됩니다.
+민감도 분석 자료 입력은 `data/sample/concept_scenarios.csv`이고, 출력은 `outputs/tables/`에 저장됩니다.
 
-## 4. 생성되는 복습 자료
+## 4. 생성되는 민감도 분석 자료
 
 | 파일 | 용도 |
 | --- | --- |
-| `outputs/tables/review_distribution_summary.csv` | 시나리오별 평균, 분위수, IQR, 손실확률, 20% 이상 상승확률을 비교합니다. |
-| `outputs/tables/review_convergence_check.csv` | 같은 seed에서 경로 수를 늘리며 평균 표준오차와 손실확률이 안정되는지 확인합니다. |
-| `outputs/tables/review_flashcards.csv` | seed, 경로 수, 분위수, 손실확률, 룩어헤드 바이어스 같은 개념을 질문/답 카드로 복습합니다. |
-| `outputs/tables/review_practice_questions.csv` | 수식, 입력 가정, 수렴성, 해석 한계를 자가 점검하는 문제와 답안을 제공합니다. |
+| `outputs/tables/concept_distribution_summary.csv` | 시나리오별 평균, 분위수, IQR, 손실확률, 20% 이상 상승확률을 비교합니다. |
+| `outputs/tables/concept_convergence_check.csv` | 같은 seed에서 경로 수를 늘리며 평균 표준오차와 손실확률이 안정되는지 확인합니다. |
+| `outputs/tables/concept_question_cards.csv` | seed, 경로 수, 분위수, 손실확률, 룩어헤드 바이어스 같은 개념을 질문/답 카드로 확인합니다. |
+| `outputs/tables/concept_validation_questions.csv` | 수식, 입력 가정, 수렴성, 해석 한계를 검증 질문과 답안으로 제공합니다. |
 
 ## 5. 읽는 순서
 
-1. `data/sample/review_scenarios.csv`에서 평균, 변동성, 투자기간, 경로 수, seed를 확인합니다.
-2. `python -m src.generate_review_materials`를 실행해 표를 재생성합니다.
-3. `review_distribution_summary.csv`에서 평균과 5%/50%/95% 분위수를 함께 비교합니다.
-4. `review_convergence_check.csv`에서 경로 수가 늘어날 때 `standard_error_mean`과 `ci95_half_width_pct_of_mean`이 줄어드는지 확인합니다.
-5. `review_flashcards.csv`를 먼저 풀고, 틀린 개념은 이 문서의 수식과 해석 체크리스트로 되돌아옵니다.
-6. `review_practice_questions.csv`의 답안을 가린 뒤, 결과표를 근거로 직접 설명합니다.
+1. `data/sample/concept_scenarios.csv`에서 평균, 변동성, 투자기간, 경로 수, seed를 확인합니다.
+2. `python -m src.generate_concept_materials`를 실행해 표를 재생성합니다.
+3. `concept_distribution_summary.csv`에서 평균과 5%/50%/95% 분위수를 함께 비교합니다.
+4. `concept_convergence_check.csv`에서 경로 수가 늘어날 때 `standard_error_mean`과 `ci95_half_width_pct_of_mean`이 줄어드는지 확인합니다.
+5. `concept_question_cards.csv`에서 주요 개념 질문과 답을 확인합니다.
+6. `concept_validation_questions.csv`에서 결과표를 근거로 한 설명이 일관적인지 검증합니다.
 
 ## 6. 해석 체크리스트
 
@@ -70,7 +70,7 @@ python -m src.generate_review_materials
 - 경로 수가 작은 결과는 seed에 민감할 수 있으므로 수렴성 점검표를 함께 봅니다.
 - 합성 입력 결과는 투자 가능성을 입증하지 않으므로, 실제 데이터 적용 전 모수 추정 기간, 거래비용, 리밸런싱 규칙, 세금, 유동성 제약을 별도로 검토합니다.
 
-## 7. 대표 복습 질문
+## 7. 대표 분석 질문
 
 ### Q1. 평균이 높아지면 손실확률은 항상 낮아지는가?
 
@@ -82,11 +82,11 @@ python -m src.generate_review_materials
 
 ### Q3. 경로 수가 충분한지는 어떻게 확인하는가?
 
-완전한 정답은 없지만, 경로 수별 평균, 표준오차, 신뢰구간 반폭, 손실확률이 안정되는지 확인합니다. 이 저장소에서는 `review_convergence_check.csv`가 그 점검표 역할을 합니다.
+완전한 정답은 없지만, 경로 수별 평균, 표준오차, 신뢰구간 반폭, 손실확률이 안정되는지 확인합니다. 이 저장소에서는 `concept_convergence_check.csv`가 그 점검표 역할을 합니다.
 
 ### Q4. 합성 시나리오 결과를 실제 투자 결론으로 말하면 왜 위험한가?
 
-합성 시나리오는 계산 흐름과 해석 연습을 위한 예제입니다. 실제 투자 판단에는 데이터 추정 오류, 상관구조, 거래비용, 세금, 유동성, 제약조건, 모형 변경 위험이 함께 들어갑니다.
+합성 시나리오는 계산 흐름과 해석 구조를 보여주는 예제입니다. 실제 투자 판단에는 데이터 추정 오류, 상관구조, 거래비용, 세금, 유동성, 제약조건, 모형 변경 위험이 함께 들어갑니다.
 
 ## 8. 확장 아이디어
 
