@@ -32,6 +32,15 @@ python -m src.run_baseline
 
 실행 결과는 `outputs/tables/baseline_results.csv`에 저장됩니다.
 
+몬테카를로 개념 복습용 표와 문제는 다음 명령으로 재생성합니다.
+
+```bash
+python -m src.generate_review_materials
+```
+
+복습 자료는 `docs/review_guide.md`에서 읽는 순서와 해석 기준을 확인하고,
+`outputs/tables/review_*.csv` 파일로 직접 점검할 수 있습니다.
+
 ## 구현 범위
 
 - 로그정규 terminal value를 난수 시드와 함께 생성해 재현성을 확보한다.
@@ -42,8 +51,14 @@ python -m src.run_baseline
 
 - `src/monte_carlo_baseline.py`: 확률분포 가정이 금융 변수의 미래 범위와 손실확률에 미치는 영향을 시뮬레이션한다.
 - `data/sample/simulation_assumptions.csv`: baseline 실행용 합성 입력값
+- `data/sample/review_scenarios.csv`: 복습 자료 생성용 합성 민감도 입력값
 - `docs/methodology.md`: 계산 절차, 입력/출력 정의, 해석상 주의점
+- `docs/review_guide.md`: 몬테카를로 핵심 수식, 해석 체크리스트, 복습 질문
 - `outputs/tables/baseline_results.csv`: 현재 baseline 산출물
+- `outputs/tables/review_distribution_summary.csv`: 복습 시나리오별 terminal value 분포 요약
+- `outputs/tables/review_convergence_check.csv`: 경로 수별 수렴성 점검표
+- `outputs/tables/review_flashcards.csv`: 개념 암기 카드
+- `outputs/tables/review_practice_questions.csv`: 자가 점검 문제와 답안
 
 ## 다음 확장 방향
 

@@ -1,0 +1,6 @@
+scenario_id,base_value,annual_mu,annual_sigma,horizon_days,n_paths,seed,review_focus
+REVIEW_BASE,100.0,0.060,0.180,252,5000,8101,기준 기대수익률과 변동성에서 평균·중앙값·손실확률을 함께 읽기
+REVIEW_LOW_VOL,100.0,0.045,0.100,252,5000,8102,변동성이 낮을 때 하방 분위수와 손실확률이 얼마나 안정되는지 확인
+REVIEW_HIGH_MU,100.0,0.095,0.180,252,5000,8103,평균 가정만 높아질 때 분포 전체가 어떻게 이동하는지 확인
+REVIEW_STRESS_VOL,100.0,0.025,0.320,252,5000,8104,스트레스 변동성에서 꼬리 폭과 손실확률이 커지는지 확인
+REVIEW_SHORT_HORIZON,100.0,0.060,0.180,63,5000,8105,투자기간이 짧아질 때 drift와 diffusion이 함께 축소되는지 확인
